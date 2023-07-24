@@ -28,7 +28,7 @@ export class App extends Component {
 
     this.setState({ isLoading: true });
 
-    fetchImages(currentPage, searchQuery) //
+    fetchImages(currentPage, searchQuery)
       .then(response => {
         this.setState(prevState => ({
           images: [...prevState.images, ...response.data.hits],
