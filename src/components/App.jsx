@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
@@ -15,11 +14,12 @@ export class App extends Component {
     isLoading: false,
     showModal: false,
     largeImageURL: '',
+    totalHits: 0,
   };
 
-  componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(prevProps, prevState) {
     if (prevState.searchQuery !== this.state.searchQuery) {
-      this.fetchImages();
+      await this.fetchImages();
     }
   }
 
@@ -32,6 +32,7 @@ export class App extends Component {
       .then(response => {
         this.setState(prevState => ({
           images: [...prevState.images, ...response.data.hits],
+          totalHits: response.data.totalHits,
           currentPage: prevState.currentPage + 1,
         }));
       })
@@ -40,11 +41,16 @@ export class App extends Component {
   };
 
   handleFormSubmit = query => {
-    this.setState({ searchQuery: query, currentPage: 1, images: [] });
+    this.setState({
+      searchQuery: query,
+      currentPage: 1,
+      images: [],
+      totalHits: 0,
+    });
   };
 
   handleLoadMore = () => {
-    this.fetchImages();
+    this.fetchImages(); 
   };
 
   handleImageClick = largeImageURL => {
@@ -56,7 +62,11 @@ export class App extends Component {
   };
 
   render() {
-    const { images, isLoading, showModal, largeImageURL } = this.state;
+    const { images, isLoading, showModal, largeImageURL, totalHits } =
+      this.state;
+    const shouldRenderButton =
+      images.length > 0 && !isLoading && images.length < totalHits;
+
     return (
       <div
         style={{
@@ -69,9 +79,7 @@ export class App extends Component {
         <Searchbar onSubmit={this.handleFormSubmit} />
         <ImageGallery gallery={images} onClick={this.handleImageClick} />
         {isLoading && <Loader />}
-        {images.length > 0 && !isLoading && (
-          <Button onClick={this.handleLoadMore} />
-        )}
+        {shouldRenderButton && <Button onClick={this.handleLoadMore} />}
         {showModal && (
           <Modal
             largeImageURL={largeImageURL}
